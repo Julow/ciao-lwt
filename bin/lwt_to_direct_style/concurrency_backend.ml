@@ -181,6 +181,8 @@ let eio ~eio_sw_as_fiber_var ~eio_env_as_fiber_var add_comment =
            ])
         [ (Nolabel, key); (Nolabel, f) ]
 
+    method type_key param = mk_typ_constr ~params:[ param ] (fiber_ident "key")
+
     method promise_type param =
       mk_typ_constr ~params:[ param ] (promise_ident "t")
 

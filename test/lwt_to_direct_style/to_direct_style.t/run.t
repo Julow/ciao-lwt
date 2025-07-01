@@ -50,7 +50,7 @@ Make a writable directory tree:
     Lwt_unix.sleep (line 31 column 9)
     Lwt_unix.Timeout (line 37 column 15)
     Lwt_unix.with_timeout (line 35 column 16)
-  lib/test.ml: (183 occurrences)
+  lib/test.ml: (184 occurrences)
     Lwt (line 36 column 12)
     Lwt (line 55 column 18)
     Lwt (line 64 column 13)
@@ -69,7 +69,8 @@ Make a writable directory tree:
     Lwt.t (line 182 column 16)
     Lwt.t (line 183 column 20)
     Lwt.t (line 184 column 20)
-    Lwt.new_key (line 150 column 11)
+    Lwt.key (line 150 column 15)
+    Lwt.new_key (line 150 column 25)
     Lwt.get (line 151 column 9)
     Lwt.with_value (line 152 column 9)
     Lwt.with_value (line 153 column 9)
@@ -632,7 +633,7 @@ Make a writable directory tree:
         failwith "fail"
     | None -> ()
   
-  let key = Fiber.create_key ()
+  let key : int Fiber.key = Fiber.create_key ()
   let _ = Fiber.get key
   
   let _ =
