@@ -137,6 +137,9 @@ let eio ~eio_sw_as_fiber_var ~eio_env_as_fiber_var add_comment =
     method condition_wait mutex cond =
       mk_apply_simple [ "Eio"; "Condition"; "await" ] [ cond; mutex ]
 
+    method condition_broadcast cond =
+      mk_apply_simple [ "Eio"; "Condition"; "broadcast" ] [ cond ]
+
     method condition_type param =
       (match param.ptyp_desc with
       | Ptyp_constr ({ txt = Lident "unit"; _ }, []) -> ()

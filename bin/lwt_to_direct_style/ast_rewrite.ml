@@ -361,6 +361,14 @@ let rewrite_apply ~backend ~state full_ident args =
       take_lblopt "mutex" @@ fun mutex ->
       take @@ fun cond ->
       return (Some (rewrite_lwt_condition_wait ~backend ~state mutex cond))
+  | "Lwt_condition", "broadcast" ->
+      take @@ fun cond ->
+      take @@ fun arg ->
+      if not (is_unit_val arg) then
+        add_comment state
+          "Condition no longer hold a value. Argument [%s] was dropped."
+          (Ocamlformat_utils.format_expression arg);
+      return (Some (backend#condition_broadcast cond))
   | "Lwt_mutex", "create" ->
       take @@ fun unit -> return (Some (backend#mutex_create unit))
   | "Lwt_mutex", "lock" -> take @@ fun t -> return (Some (backend#mutex_lock t))
