@@ -637,12 +637,12 @@ Make a writable directory tree:
   let _ = Fiber.get key
   
   let _ =
-    (Option.fold ~none:Fiber.without_binding
+    (Stdlib.Option.fold ~none:Fiber.without_binding
        ~some:(Fun.flip Fiber.with_binding)
        (Some 12)) key (fun () -> x)
   
   let _ =
-    (Option.fold ~none:Fiber.without_binding
+    (Stdlib.Option.fold ~none:Fiber.without_binding
        ~some:(Fun.flip Fiber.with_binding)
        None) key (fun () -> x)
   

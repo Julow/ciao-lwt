@@ -171,7 +171,8 @@ let eio ~eio_sw_as_fiber_var ~eio_env_as_fiber_var add_comment =
 
     method key_with_value key val_opt f =
       Exp.apply
-        (mk_apply_ident [ "Option"; "fold" ]
+        (mk_apply_ident
+           [ "Stdlib"; "Option"; "fold" ]
            [
              (mk_lbl "none", mk_exp_ident (fiber_ident "without_binding"));
              ( mk_lbl "some",
