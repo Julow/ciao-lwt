@@ -226,6 +226,9 @@ let rewrite_apply_lwt ~backend ~state ident args =
   | "wakeup" | "wakeup_later" ->
       take @@ fun u ->
       take @@ fun arg -> return (Some (backend#wakeup u arg))
+  | "wakeup_exn" ->
+      take @@ fun u ->
+      take @@ fun arg -> return (Some (backend#wakeup_exn u arg))
   | "ignore_result" ->
       take @@ fun p -> return (Some (backend#async (suspend ~state p)))
   | "task" ->

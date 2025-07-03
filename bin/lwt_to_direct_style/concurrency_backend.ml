@@ -103,6 +103,13 @@ let eio ~eio_sw_as_fiber_var ~eio_env_as_fiber_var add_comment =
       mk_apply_simple (promise_ident "create") [ unit ]
 
     method wakeup u arg = mk_apply_simple (promise_ident "resolve") [ u; arg ]
+
+    method wakeup_exn u arg =
+      add_comment
+        "This used to be a ['a Lwt.t] is now a [('a, exn) result Promise.t]. \
+         Use [resolve_ok] and [await_exn] instead of [resolve] and [await].";
+      mk_apply_simple (promise_ident "resolve_error") [ u; arg ]
+
     method join lst = mk_apply_simple (fiber_ident "all") [ lst ]
     method pause unit = mk_apply_simple (fiber_ident "yield") [ unit ]
 

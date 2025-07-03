@@ -122,6 +122,7 @@ let _ =
   let (t, u) : unit Lwt.t * unit Lwt.u = Lwt.wait () in
   Lwt.async (fun () -> t);
   Lwt.wakeup u ();
+  Lwt.wakeup_exn u Not_found;
   Lwt.wakeup_later u ()
 
 let _ = Lwt_list.iter_s (fun _ -> x) []
