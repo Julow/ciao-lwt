@@ -325,6 +325,10 @@ let rewrite_apply ~backend ~state full_ident args =
         "This call to [Unix.%s] was [Lwt_unix.%s] before. It's now blocking."
         ident ident;
       transparent [ "Unix"; ident ]
+  | ("Lwt_condition" as unit), (("signal" | "broadcast_exn") as ident) ->
+      add_comment state "[%s.%s] is Lwt-specific and should be avoided." unit
+        ident;
+      return None
   | "Lwt_list", ident -> (
       match string_drop_suffix ~suffix:"_s" ident with
       | Some ident -> transparent [ "List"; ident ]

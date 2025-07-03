@@ -619,9 +619,24 @@ Make a writable directory tree:
       (* TODO: lwt-to-direct-style: Condition no longer hold a value. Argument [42] was dropped. *)
       cond
   
-  let _f cond = Lwt_condition.signal cond ()
-  let _f cond = Lwt_condition.signal cond 42
-  let _f cond = Lwt_condition.broadcast_exn cond Not_found
+  let _f cond =
+    Lwt_condition.signal
+      (* TODO: lwt-to-direct-style: [Lwt_condition.signal] is Lwt-specific and should be avoided. *)
+      (* TODO: lwt-to-direct-style: [Lwt_condition.signal] is Lwt-specific and should be avoided. *)
+      cond ()
+  
+  let _f cond =
+    Lwt_condition.signal
+      (* TODO: lwt-to-direct-style: [Lwt_condition.signal] is Lwt-specific and should be avoided. *)
+      (* TODO: lwt-to-direct-style: [Lwt_condition.signal] is Lwt-specific and should be avoided. *)
+      cond 42
+  
+  let _f cond =
+    Lwt_condition.broadcast_exn
+      (* TODO: lwt-to-direct-style: [Lwt_condition.broadcast_exn] is Lwt-specific and should be avoided. *)
+      (* TODO: lwt-to-direct-style: [Lwt_condition.broadcast_exn] is Lwt-specific and should be avoided. *)
+      cond Not_found
+  
   let m = Eio.Mutex.create ()
   let _ = Eio.Mutex.lock m
   let _ = Eio.Mutex.unlock m
