@@ -50,7 +50,7 @@ Make a writable directory tree:
     Lwt_unix.sleep (line 31 column 9)
     Lwt_unix.Timeout (line 37 column 15)
     Lwt_unix.with_timeout (line 35 column 16)
-  lib/test.ml: (189 occurrences)
+  lib/test.ml: (191 occurrences)
     Lwt (line 36 column 12)
     Lwt (line 55 column 18)
     Lwt (line 64 column 13)
@@ -60,6 +60,7 @@ Make a writable directory tree:
     Lwt_fmt (line 56 column 18)
     Lwt_fmt (line 65 column 13)
     Lwt.t (line 103 column 36)
+    Lwt.t (line 122 column 21)
     Lwt.t (line 160 column 14)
     Lwt.t (line 161 column 22)
     Lwt.t (line 162 column 14)
@@ -69,6 +70,7 @@ Make a writable directory tree:
     Lwt.t (line 187 column 16)
     Lwt.t (line 188 column 20)
     Lwt.t (line 189 column 20)
+    Lwt.u (line 122 column 34)
     Lwt.key (line 155 column 15)
     Lwt.new_key (line 155 column 25)
     Lwt.get (line 156 column 9)
@@ -102,7 +104,7 @@ Make a writable directory tree:
     Lwt.return_unit (line 201 column 11)
     Lwt.fail_with (line 110 column 9)
     Lwt.fail_invalid_arg (line 118 column 33)
-    Lwt.wait (line 122 column 14)
+    Lwt.wait (line 122 column 42)
     Lwt.task (line 147 column 9)
     Lwt.bind (line 7 column 7)
     Lwt.bind (line 9 column 17)
@@ -576,7 +578,7 @@ Make a writable directory tree:
       (fun () -> x)
   
   let _ =
-    let t, u =
+    let (t, u) : unit Promise.t * unit Promise.u =
       Promise.create
         (* TODO: lwt-to-direct-style: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()

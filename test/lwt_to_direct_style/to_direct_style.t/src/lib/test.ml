@@ -119,7 +119,7 @@ let _ = Lwt.finalize (fun () -> Lwt.fail_invalid_arg "") (fun () -> x)
 let _ = Lwt.async (fun () -> x)
 
 let _ =
-  let t, u = Lwt.wait () in
+  let (t, u) : unit Lwt.t * unit Lwt.u = Lwt.wait () in
   Lwt.async (fun () -> t);
   Lwt.wakeup u ();
   Lwt.wakeup_later u ()

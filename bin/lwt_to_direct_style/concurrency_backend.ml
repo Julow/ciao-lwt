@@ -190,6 +190,9 @@ let eio ~eio_sw_as_fiber_var ~eio_env_as_fiber_var add_comment =
     method promise_type param =
       mk_typ_constr ~params:[ param ] (promise_ident "t")
 
+    method resolver_type param =
+      mk_typ_constr ~params:[ param ] (promise_ident "u")
+
     method direct_style_type param = param
 
     method of_unix_file_descr ?blocking:_ fd =

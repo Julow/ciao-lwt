@@ -572,6 +572,7 @@ let rewrite_type ~backend ~state typ =
       Occ.may_rewrite state lid (fun ident ->
           match (ident, params) with
           | ("Lwt", "t"), [ param ] -> Some (backend#promise_type param)
+          | ("Lwt", "u"), [ param ] -> Some (backend#resolver_type param)
           | ("Lwt", "key"), [ param ] -> Some (backend#type_key param)
           | ("Lwt_condition", "t"), [ param ] ->
               Some (backend#condition_type param)
