@@ -5,8 +5,11 @@ open Ast_helper
 open Ocamlformat_utils.Ast_utils
 module Occ = Migrate_utils.Occ
 
-let add_comment state ?loc text =
+let add_comment_str state ?loc text =
   Migrate_utils.add_comment state ?loc ("TODO: lwt-to-direct-style: " ^ text)
+
+let add_comment state ?loc fmt =
+  Format.kasprintf (add_comment_str state ?loc) fmt
 
 let is_unit_pat = function
   | { ppat_desc = Ppat_construct ({ txt = Lident "()"; _ }, None); _ } -> true
@@ -211,9 +214,8 @@ let rewrite_apply_lwt ~backend ~state ident args =
       take @@ fun lst -> return (Some (backend#pick (suspend_list ~state lst)))
   | "choose" ->
       take @@ fun _lst ->
-      add_comment state
-        ("[Lwt.choose] can't be automatically translated."
-       ^ backend#choose_comment_hint);
+      add_comment state "[Lwt.choose] can't be automatically translated.%s"
+        backend#choose_comment_hint;
       return None
   | "join" ->
       take @@ fun lst -> return (Some (backend#join (suspend_list ~state lst)))
@@ -227,10 +229,10 @@ let rewrite_apply_lwt ~backend ~state ident args =
   | "ignore_result" ->
       take @@ fun p -> return (Some (backend#async (suspend ~state p)))
   | "task" ->
-      add_comment state backend#cancel_message;
+      add_comment state "%s" backend#cancel_message;
       take @@ fun unit -> return (Some (backend#wait unit))
   | "cancel" | "no_cancel" | "protected" | "on_cancel" | "wrap_in_cancelable" ->
-      add_comment state backend#cancel_message;
+      add_comment state "%s" backend#cancel_message;
       return None
   | "state" -> take @@ fun p -> return (Some (backend#state p))
   (* Return *)
@@ -276,9 +278,8 @@ let rewrite_apply_lwt ~backend ~state ident args =
   | "<?>" ->
       take @@ fun _lhs ->
       take @@ fun _rhs ->
-      add_comment state
-        ("[<?>] can't be automatically translated."
-       ^ backend#choose_comment_hint);
+      add_comment state "[<?>] can't be automatically translated.%s"
+        backend#choose_comment_hint;
       return None
   | "wrap" ->
       take @@ fun f -> return (Some (Exp.apply f [ (Nolabel, mk_unit_val) ]))
@@ -300,8 +301,7 @@ let rewrite_apply ~backend ~state full_ident args =
     (match value with
     | Some (_, kind) ->
         let prefix = match kind with `Lbl -> '~' | `Opt -> '?' in
-        Printf.ksprintf (add_comment state)
-          "Labelled argument %c%s was dropped.%s" prefix arg cmt
+        add_comment state "Labelled argument %c%s was dropped.%s" prefix arg cmt
     | None -> ());
     k
   in
@@ -321,7 +321,7 @@ let rewrite_apply ~backend ~state full_ident args =
   | "Lwt_io", "read_value" -> transparent [ "Marshal"; "from_channel" ]
   | "Lwt_io", "write_value" -> transparent [ "Marshal"; "to_channel" ]
   | "Lwt_unix", (("connect" | "accept" | "bind") as ident) ->
-      Printf.ksprintf (add_comment state)
+      add_comment state
         "This call to [Unix.%s] was [Lwt_unix.%s] before. It's now blocking."
         ident ident;
       transparent [ "Unix"; ident ]
@@ -347,7 +347,7 @@ let rewrite_apply ~backend ~state full_ident args =
   (* [Lwt_unix] contains functions exactly equivalent to functions of the same
      name in [Unix]. *)
   | "Lwt_unix", ("getaddrinfo" as fname) ->
-      Format.kasprintf (add_comment state)
+      add_comment state
         "This call to [Unix.%s] was [Lwt_unix.%s] before the rewrite." fname
         fname;
       transparent [ "Unix"; fname ]
@@ -690,13 +690,13 @@ let mapper ~backend ~state =
 
 let rewrite_lwt_uses ~fname:_ ~(backend : (string -> unit) -> _) =
   let structure state str =
-    let backend = backend (add_comment state) in
+    let backend = backend (add_comment_str state) in
     let m = mapper ~backend ~state in
     let str = m.structure m str in
     add_extra_opens ~backend str
   in
   let signature state sg =
-    let backend = backend (add_comment state) in
+    let backend = backend (add_comment_str state) in
     let m = mapper ~backend ~state in
     let sg = m.signature m sg in
     add_extra_opens_sg ~backend sg
