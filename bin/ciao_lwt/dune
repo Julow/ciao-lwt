@@ -8,4 +8,5 @@
   fs_utils
   ocamlformat_utils
   to_direct_style
-  to_logs))
+  to_logs
+  bridge))

@@ -10,36 +10,63 @@ let list_dir p =
       Array.iteri (fun i fname -> files.(i) <- Filename.concat p fname) files;
       files
 
-let rec scan_dir ~descend_into f acc path =
-  match Sys.is_directory path with
-  | exception Sys_error msg ->
-      Printf.eprintf "%s\n%!" msg;
-      acc
-  | true ->
-      if descend_into path then _scan_dir ~descend_into f acc path else acc
-  | false -> f acc path
+(** Check if a path points to an existing directory and do not raise. *)
+let is_dir p = try Sys.is_directory p with Sys_error _ -> false
 
-and _scan_dir ~descend_into f acc parent =
-  Array.fold_left (scan_dir ~descend_into f) acc (list_dir parent)
+(** Partition files and directories in the array [ar], returned by [list_dir].
+*)
+let partition_files ar =
+  (* Preserve the ordering from the input. *)
+  let rec loop dirs files ar i =
+    if i < 0 then (dirs, files)
+    else
+      let p = ar.(i) and i = i - 1 in
+      if is_dir p then loop (p :: dirs) files ar i
+      else loop dirs (p :: files) ar i
+  in
+  loop [] [] ar (Array.length ar - 1)
+
+(** Walk a directory tree and call [f acc dir_path files_paths] for every
+    intermediate directories. [files_paths] are valid paths to the files
+    contained in the directory at [dir_path]. [f] can control how the tree is
+    walked by returning [`Continue] to keep walking down the tree or
+    [`Dont_descend] to ignore an entire subtree. Return the initial [acc] if the
+    initial [path] is not a directory or doesn't exist. *)
+let walk_dir f acc path =
+  let rec walk acc path =
+    let dirs, files = partition_files (list_dir path) in
+    match f acc path files with
+    | `Dont_descend, acc -> acc
+    | `Continue, acc -> List.fold_left walk acc dirs
+  in
+  if is_dir path then walk acc path else acc
 
 (** Call [f] on every files found recursively into [path]. [descend_into] is
     called on every directories. Directories for which [descend_into] is [false]
-    are not iterated. *)
+    are not traversed. *)
 let scan_dir ?(descend_into = fun _ -> true) f acc path =
-  scan_dir ~descend_into f acc path
+  walk_dir
+    (fun acc dir files ->
+      if descend_into dir then (`Continue, List.fold_left f acc files)
+      else (`Dont_descend, acc))
+    acc path
+
+(** Returns [true] if [dir] is a directory that should be avoided while scanning
+    project files. *)
+let non_project_dir dir =
+  match Filename.basename dir with
+  | "_build" | "_opam" | ".git" -> true
+  | _ -> false
+
+(** Whether a file is OCaml source code by looking at its file extension. *)
+let is_ml_file path =
+  match Filename.extension path with
+  | ".ml" | ".eliom" | ".mli" | ".eliomi" -> true
+  | ext ->
+      (* Accept extensions of the form [foo.client.ml] *)
+      String.ends_with ~suffix:".ml" ext
 
 (** Calls [f] on every OCaml implementation files in a directory tree. *)
 let find_ml_files f path =
-  let is_ml_file fname =
-    match Filename.extension fname with
-    | ".ml" | ".eliom" | ".mli" | ".eliomi" -> true
-    | ext ->
-        (* Accept extensions of the form [foo.client.ml] *)
-        String.ends_with ~suffix:".ml" ext
-  in
-  let descend_into path =
-    match Filename.basename path with
-    | "_build" | "_opam" | ".git" -> false
-    | _ -> true
-  in
+  let descend_into dir = not (non_project_dir dir) in
   scan_dir ~descend_into (fun () p -> if is_ml_file p then f p) () path

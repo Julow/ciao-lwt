@@ -37,6 +37,10 @@ let opt_migrate =
   let doc = "Modify the source code instead of printing occurrences." in
   Arg.(value & flag & info ~doc [ "migrate" ])
 
+let arg_input_dir =
+  let doc = "Create a bridge for every library the passed directory." in
+  Arg.(required & pos 0 (some dir) None & info ~doc ~docv:"DIR" [])
+
 (** Commands *)
 
 module To_eio = struct
@@ -95,11 +99,33 @@ module To_logs = struct
   let cmd = Cmd.v info term
 end
 
+module Bridge_eio = struct
+  let run input_dir =
+    let backend = Bridge.Backend.eio in
+    let units = function
+      | "Lwt" -> true
+      | unit -> String.starts_with ~prefix:"Lwt_" unit
+    in
+    let packages = [ "lwt" ] in
+    Bridge.create ~packages ~units ~backend input_dir
+
+  let term = Term.(const run $ arg_input_dir)
+
+  let info =
+    let doc =
+      "Create a \"bridge\" library with a direct-style interface, implemented \
+       on top of the existing Lwt interface."
+    in
+    Cmd.info "bridge-eio" ~doc
+
+  let cmd = Cmd.v info term
+end
+
 let cmd =
   let doc =
     "Migrate your codebase from Lwt to direct-style concurrency libraries."
   in
   let info = Cmd.info "ciao-lwt" ~version:"%%VERSION%%" ~doc in
-  Cmd.group info [ To_eio.cmd; To_logs.cmd ]
+  Cmd.group info [ To_eio.cmd; To_logs.cmd; Bridge_eio.cmd ]
 
 let () = exit (Cmd.eval cmd)
