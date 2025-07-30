@@ -11,13 +11,16 @@ val walk_dir :
   'acc ->
   string ->
   'acc
-(** [walk_dir f acc path] walks a directory tree and calls
-    [f acc dir_path files_paths] for every intermediate directories.
-    [files_paths] are valid paths to the files contained in the directory at
-    [dir_path]. [f] can control how the tree is walked by returning [`Continue]
-    to keep walking down the tree or [`Dont_descend] to ignore an entire
-    subtree. Return the initial [acc] if the initial [path] is not a directory
-    or doesn't exist. *)
+(** [walk_dir f acc init_path] walks a directory tree and calls
+    [f acc rel_dir_path files_paths] for every intermediate directories.
+    [files_paths] are valid paths to the files contained in the directory being
+    walked. [rel_dir_path] is the path to the directory being walked relative to
+    the starting directory [init_path], it is [""] for the first directory being
+    walked. The valid path to the directory being walked is
+    [Filename.concat init_path rel_dir_path]. [f] can control how the tree is
+    walked by returning [`Continue] to keep walking down the tree or
+    [`Dont_descend] to ignore an entire subtree. Return the initial [acc] if the
+    initial [path] is not a directory or doesn't exist. *)
 
 val scan_dir :
   ?descend_into:(string -> bool) ->
@@ -25,10 +28,12 @@ val scan_dir :
   'acc ->
   string ->
   'acc
-(** [scan_dir ?descend_into f acc path] calls [f acc path] on every
-    non-directory files found recursively into [path]. [descend_into] is called
-    on every directories. Directories for which [descend_into] is [false] are
-    not traversed. *)
+(** [scan_dir ?descend_into f acc init_path] calls [f acc init_path] on every
+    non-directory files found recursively into [init_path].
+    [descend_into rel_dir_path] is called for every directories, where
+    [rel_dir_path] is the path to the directory being scanned relative to
+    [init_path]. Directories for which [descend_into] is [false] are not
+    traversed, by default always [true]. *)
 
 val non_project_dir : string -> bool
 (** Returns [true] if [dir] is a directory that should be avoided while scanning

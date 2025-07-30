@@ -26,14 +26,18 @@ let partition_files ar =
   in
   loop [] [] ar (Array.length ar - 1)
 
-let walk_dir f acc path =
-  let rec walk acc path =
-    let dirs, files = partition_files (list_dir path) in
-    match f acc path files with
-    | `Dont_descend, acc -> acc
-    | `Continue, acc -> List.fold_left walk acc dirs
-  in
-  if is_dir path then walk acc path else acc
+let rec _walk f rel_dir_path acc path =
+  let dirs, files = partition_files (list_dir path) in
+  match f acc rel_dir_path files with
+  | `Dont_descend, acc -> acc
+  | `Continue, acc -> List.fold_left (_walk_subdirs f rel_dir_path) acc dirs
+
+and _walk_subdirs f rel_dir_path acc path =
+  let rel_dir_path = Filename.concat rel_dir_path (Filename.basename path) in
+  _walk f rel_dir_path acc path
+
+let walk_dir f acc init_path =
+  if is_dir init_path then _walk f "" acc init_path else acc
 
 let scan_dir ?(descend_into = fun _ -> true) f acc path =
   walk_dir
