@@ -1,4 +1,4 @@
-(** List files in a directory. Returns an empty array on error. *)
+(** Returns an empty array on error. *)
 let list_dir p =
   match Sys.readdir p with
   | exception Sys_error msg ->
@@ -10,7 +10,7 @@ let list_dir p =
       Array.iteri (fun i fname -> files.(i) <- Filename.concat p fname) files;
       files
 
-(** Check if a path points to an existing directory and do not raise. *)
+(** Do not raise. *)
 let is_dir p = try Sys.is_directory p with Sys_error _ -> false
 
 (** Partition files and directories in the array [ar], returned by [list_dir].
@@ -26,12 +26,6 @@ let partition_files ar =
   in
   loop [] [] ar (Array.length ar - 1)
 
-(** Walk a directory tree and call [f acc dir_path files_paths] for every
-    intermediate directories. [files_paths] are valid paths to the files
-    contained in the directory at [dir_path]. [f] can control how the tree is
-    walked by returning [`Continue] to keep walking down the tree or
-    [`Dont_descend] to ignore an entire subtree. Return the initial [acc] if the
-    initial [path] is not a directory or doesn't exist. *)
 let walk_dir f acc path =
   let rec walk acc path =
     let dirs, files = partition_files (list_dir path) in
@@ -41,9 +35,6 @@ let walk_dir f acc path =
   in
   if is_dir path then walk acc path else acc
 
-(** Call [f] on every files found recursively into [path]. [descend_into] is
-    called on every directories. Directories for which [descend_into] is [false]
-    are not traversed. *)
 let scan_dir ?(descend_into = fun _ -> true) f acc path =
   walk_dir
     (fun acc dir files ->
@@ -51,14 +42,11 @@ let scan_dir ?(descend_into = fun _ -> true) f acc path =
       else (`Dont_descend, acc))
     acc path
 
-(** Returns [true] if [dir] is a directory that should be avoided while scanning
-    project files. *)
 let non_project_dir dir =
   match Filename.basename dir with
   | "_build" | "_opam" | ".git" -> true
   | _ -> false
 
-(** Whether a file is OCaml source code by looking at its file extension. *)
 let is_ml_file path =
   match Filename.extension path with
   | ".ml" | ".eliom" | ".mli" | ".eliomi" -> true
@@ -66,7 +54,6 @@ let is_ml_file path =
       (* Accept extensions of the form [foo.client.ml] *)
       String.ends_with ~suffix:".ml" ext
 
-(** Calls [f] on every OCaml implementation files in a directory tree. *)
 let find_ml_files f path =
   let descend_into dir = not (non_project_dir dir) in
   scan_dir ~descend_into (fun () p -> if is_ml_file p then f p) () path
