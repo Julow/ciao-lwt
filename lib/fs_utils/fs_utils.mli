@@ -6,6 +6,11 @@ val list_dir : string -> string array
 val is_dir : string -> bool
 (** Check if a path points to an existing directory and do not raise. *)
 
+val mkdir : string -> unit
+(** Create a directory at the given path and its parents if needed. Do nothing
+    if a directory exists at this path. Raises [Sys_error] if an existing file
+    prevent creating the directory or on an other error. *)
+
 val walk_dir :
   ('acc -> string -> string list -> [ `Continue | `Dont_descend ] * 'acc) ->
   'acc ->

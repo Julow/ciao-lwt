@@ -13,6 +13,12 @@ let list_dir p =
 (** Do not raise. *)
 let is_dir p = try Sys.is_directory p with Sys_error _ -> false
 
+let rec mkdir p =
+  if is_dir p then ()
+  else (
+    mkdir (Filename.dirname p);
+    Sys.mkdir p 0o755)
+
 (** Partition files and directories in the array [ar], returned by [list_dir].
 *)
 let partition_files ar =
