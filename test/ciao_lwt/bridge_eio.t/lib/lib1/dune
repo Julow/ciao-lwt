@@ -1,0 +1,4 @@
+(library
+ (name lib1)
+ (libraries lwt)
+ (modules_without_implementation lib1))

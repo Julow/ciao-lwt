@@ -10,6 +10,14 @@ let ident_conv =
   in
   Arg.conv ~docv:"IDENTIFIER" (parse, Printast.fmt_longident)
 
+(** Argument that is a path either to a directory or to nothing. *)
+let dir_or_nothing_conv =
+  let parse p =
+    if (not (Sys.file_exists p)) || Sys.is_directory p then Ok p
+    else Error (`Msg (p ^ ": File already exists"))
+  in
+  Arg.conv ~docv:"PATH" (parse, Format.pp_print_string)
+
 let opt_eio_sw_as_fiber_var =
   let doc =
     "Eio only: Pass the active switch as a Fiber variable. It will be queried \
@@ -37,9 +45,16 @@ let opt_migrate =
   let doc = "Modify the source code instead of printing occurrences." in
   Arg.(value & flag & info ~doc [ "migrate" ])
 
-let arg_input_dir =
+let arg_input_dir position =
   let doc = "Create a bridge for every library the passed directory." in
-  Arg.(required & pos 0 (some dir) None & info ~doc ~docv:"DIR" [])
+  Arg.(required & pos position (some dir) None & info ~doc ~docv:"DIR" [])
+
+let arg_output_dir position =
+  let doc = "Create a bridge for every library the passed directory." in
+  Arg.(
+    required
+    & pos position (some dir_or_nothing_conv) None
+    & info ~doc ~docv:"DIR" [])
 
 (** Commands *)
 
@@ -100,16 +115,16 @@ module To_logs = struct
 end
 
 module Bridge_eio = struct
-  let run input_dir =
+  let run input_dir output_dir =
     let backend = Bridge.Backend.eio in
     let units = function
       | "Lwt" -> true
       | unit -> String.starts_with ~prefix:"Lwt_" unit
     in
     let packages = [ "lwt" ] in
-    Bridge.create ~packages ~units ~backend input_dir
+    Bridge.create ~packages ~units ~backend input_dir output_dir
 
-  let term = Term.(const run $ arg_input_dir)
+  let term = Term.(const run $ arg_input_dir 0 $ arg_output_dir 1)
 
   let info =
     let doc =
