@@ -53,11 +53,16 @@ let non_project_dir dir =
 
 let is_ml_file path =
   match Filename.extension path with
-  | ".ml" | ".eliom" | ".mli" | ".eliomi" -> true
+  | ".ml" | ".eliom" -> Some `Impl
+  | ".mli" | ".eliomi" -> Some `Intf
   | ext ->
       (* Accept extensions of the form [foo.client.ml] *)
-      String.ends_with ~suffix:".ml" ext
+      if String.ends_with ~suffix:".ml" ext then Some `Impl
+      else if String.ends_with ~suffix:".mli" ext then Some `Intf
+      else None
 
 let find_ml_files f path =
   let descend_into dir = not (non_project_dir dir) in
-  scan_dir ~descend_into (fun () p -> if is_ml_file p then f p) () path
+  scan_dir ~descend_into
+    (fun () p -> if Option.is_some (is_ml_file p) then f p)
+    () path

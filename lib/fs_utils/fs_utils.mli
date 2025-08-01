@@ -39,7 +39,7 @@ val non_project_dir : string -> bool
 (** Returns [true] if [dir] is a directory that should be avoided while scanning
     project files. *)
 
-val is_ml_file : string -> bool
+val is_ml_file : string -> [ `Intf | `Impl ] option
 (** Whether a file is OCaml source code by looking at its file extension. *)
 
 val find_ml_files : (string -> unit) -> string -> unit
